@@ -9,10 +9,19 @@ const chalk = require('chalk');
 const ora = require('ora');
 const uuid = require('uuid');
 
+const colors = {
+  priorities: {
+    4: 'red',
+    3: 'yellowBright',
+    2: 'yellow',
+    1: 'white',
+  },
+};
+
 /**
  * App has started, notify the user
  */
-console.log(chalk.green('Todoist CLI ✨'));
+// console.log(chalk.green('Todoist CLI ✨ '));
 
 /**
  * In order to do anything we must first have a valid API token, let's try and find one.
@@ -29,17 +38,37 @@ if (!token) {
   process.exit(1);
 }
 
-const restApi = (options = {}, data = []) => {
-  const spinner = ora(options.name).start();
+const printer = tasks => {
+  console.log(
+    tasks
+      .sort((a, b) => {
+        return parseInt(b.priority) - parseInt(a.priority);
+      })
+      .map(task => {
+        const {content, priority} = task;
+        const pCol = colors.priorities[priority];
+        return `${chalk[pCol](`p${priority}`)} ${content}`;
+      })
+      .join('\n')
+      .toString()
+  );
+};
 
-  const url = 'https://beta.todoist.com/API/v8/tasks?token=' + token;
+const restApi = (options = {}, params = {}) => {
+  const spinner = ora(options.msg).start();
+  const request = {
+    url: 'https://beta.todoist.com/API/v8/tasks?token=' + token,
+    method: 'get',
+    params,
+    ...options,
+  };
 
-  return fetch(url, {
-    method: 'GET',
-  })
+  return fetch(request)
     .then(({data}) => {
-      console.log(data);
-      spinner.succeed(JSON.stringify(data));
+      console.log('\n');
+      printer(data);
+      console.log();
+      spinner.succeed('Done.');
     })
     .catch(e => {
       console.log(e);
@@ -55,7 +84,23 @@ program
       {
         msg: `Listing tasks from ${project}`,
       },
-      {filter: `${project}`}
+      {
+        filter: `${project}`,
+      }
+    );
+  });
+
+program
+  .command('today')
+  .alias('t')
+  .action(project => {
+    restApi(
+      {
+        msg: 'Listing tasks due today',
+      },
+      {
+        filter: '(overdue | today)',
+      }
     );
   });
 
