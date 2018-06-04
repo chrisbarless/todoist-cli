@@ -5,7 +5,7 @@
   "repository": "git@github.com:chrisbarless/todoist-cli.git",
   "main": "index.js",
   "bin": {
-    "todoist": "index.js"
+    "td": "index.js"
   },
   "dependencies": {
     "axios": "^0.17.1",
