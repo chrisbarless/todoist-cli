@@ -18,6 +18,39 @@ const colors = {
   },
 };
 
+const printers = {
+  day: tasks => {
+    console.log(
+      tasks
+        .sort((a, b) => {
+          return parseInt(b.priority) - parseInt(a.priority);
+        })
+        .map(task => {
+          const {content, priority} = task;
+          const pCol = colors.priorities[priority];
+          return `${chalk[pCol](`p${priority}`)} ${content}`;
+        })
+        .join('\n')
+        .toString()
+    );
+  },
+  multiday: tasks => {
+    const days = {};
+    tasks.forEach(task => {
+      const {date} = task.due;
+      if (!days[date]) {
+        days[date] = [task];
+      } else {
+        days[date].push(task);
+      }
+    });
+    for (day in days) {
+      console.log(chalk.bold('\n' + day));
+      printers.day(days[day]);
+    }
+  },
+};
+
 /**
  * App has started, notify the user
  */
@@ -38,22 +71,6 @@ if (!token) {
   process.exit(1);
 }
 
-const printer = tasks => {
-  console.log(
-    tasks
-      .sort((a, b) => {
-        return parseInt(b.priority) - parseInt(a.priority);
-      })
-      .map(task => {
-        const {content, priority} = task;
-        const pCol = colors.priorities[priority];
-        return `${chalk[pCol](`p${priority}`)} ${content}`;
-      })
-      .join('\n')
-      .toString()
-  );
-};
-
 const restApi = (options = {}, params = {}) => {
   const spinner = ora(options.msg).start();
   const request = {
@@ -66,7 +83,7 @@ const restApi = (options = {}, params = {}) => {
   return fetch(request)
     .then(({data}) => {
       console.log('\n');
-      printer(data);
+      options.printer(data);
       console.log();
       spinner.succeed('Done.');
     })
@@ -97,9 +114,25 @@ program
     restApi(
       {
         msg: 'Listing tasks due today',
+        printer: printers.day,
       },
       {
         filter: '(overdue | today)',
+      }
+    );
+  });
+
+program
+  .command('week')
+  .alias('w')
+  .action(project => {
+    restApi(
+      {
+        msg: 'Listing the next 7 days',
+        printer: printers.multiday,
+      },
+      {
+        filter: '7 days',
       }
     );
   });
