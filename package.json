@@ -1,6 +1,6 @@
 {
   "name": "todoist-cli",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "A Javascript Todoist CLI",
   "repository": "git@github.com:chrisbarless/todoist-cli.git",
   "main": "index.js",
