@@ -79,7 +79,10 @@ if (!token) {
 const restApi = (options = {}, params = {}) => {
   const spinner = ora(options.msg).start();
   const request = {
-    url: 'https://beta.todoist.com/API/v8/tasks?token=' + token,
+    url: 'https://beta.todoist.com/API/v8/tasks',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
     method: 'get',
     params,
     ...options,
