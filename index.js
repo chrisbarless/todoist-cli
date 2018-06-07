@@ -44,10 +44,15 @@ const printers = {
         days[date].push(task);
       }
     });
-    for (day in days) {
-      console.log(chalk.bold('\n' + day));
-      printers.day(days[day]);
-    }
+    Object.keys(days)
+      .sort()
+      .map(dateString => {
+        const tasks = days[dateString];
+        console.log(chalk.bold('\n' + dateString));
+        if (tasks) {
+          printers.day(tasks);
+        }
+      });
   },
 };
 
